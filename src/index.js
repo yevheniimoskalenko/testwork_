@@ -35,8 +35,13 @@ app.post("/upload", async (req, res) => {
       };
 
       const data_ = csvjson.toObject(data, options);
-      console.log(data_)
-      //   return res.sendStatus(200)
+      for (let key in data_) {
+        pool.query(
+          `INSERT INTO users (username, firstname, lastname, age) VALUES ("${data_[key].Username}","${data_[key].Firstname}","${data_[key].Lastname}","${data_[key].Age}" )`,
+          function (err, rows, fields) {}
+        );
+      }
+      return res.sendStatus(200)
     }
 
   });
