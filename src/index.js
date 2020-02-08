@@ -46,6 +46,13 @@ app.post("/upload", async (req, res) => {
 
   });
 });
+// Получить коллекцию пользователей в формате JSON
+app.get("/all_users", async (req, res) => {
+  pool.query(`SELECT username, firstname, lastname, age FROM users`, (err, rows, fields) => {
+    return res.status(200).send(JSON.stringify(rows))
+  })
+})
+
 
 app.listen(3000, () => {
   console.log(`Server is run`)
