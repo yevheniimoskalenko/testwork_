@@ -1,6 +1,7 @@
 const express = require("express");
 const fileupload = require("express-fileupload");
 const mysql = require("mysql2");
+const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 const fs = require("fs");
 const csvjson = require("csvjson");
 const path = require("path");
@@ -16,10 +17,7 @@ const app = express();
 app.use(fileupload());
 //Загрузите файл CSV. Файл должен быть проанализирован и сохранен в базе данных
 app.post("/upload", async (req, res) => {
-  const {
-    name,
-    mimetype
-  } = req.files.file;
+  const { name, mimetype } = req.files.file;
   if (mimetype != "text/csv") return res.sendStatus(415); // если не файл в формате cvs то значит ошибка
 
   req.files.file.mv(`./uploads/${name}`, err => {
@@ -27,10 +25,10 @@ app.post("/upload", async (req, res) => {
       return res.send(err);
     } else {
       var data = fs.readFileSync(path.join(`./uploads/${name}`), {
-        encoding: 'utf8'
+        encoding: "utf8"
       });
       var options = {
-        delimiter: ';', // optional
+        delimiter: ";", // optional
         quote: '"' // optional
       };
 
@@ -38,22 +36,41 @@ app.post("/upload", async (req, res) => {
       for (let key in data_) {
         pool.query(
           `INSERT INTO users (username, firstname, lastname, age) VALUES ("${data_[key].Username}","${data_[key].Firstname}","${data_[key].Lastname}","${data_[key].Age}" )`,
-          function (err, rows, fields) {}
+          function(err, rows, fields) {}
         );
       }
-      return res.sendStatus(200)
+      return res.sendStatus(200);
     }
-
   });
 });
 // Получить коллекцию пользователей в формате JSON
 app.get("/all_users", async (req, res) => {
-  pool.query(`SELECT username, firstname, lastname, age FROM users`, (err, rows, fields) => {
-    return res.status(200).send(JSON.stringify(rows))
-  })
-})
+  pool.query(
+    `SELECT username, firstname, lastname, age FROM users`,
+    (err, rows, fields) => {
+      return res.status(200).send(JSON.stringify(rows));
+    }
+  );
+});
+// Загрузите файл CSV. Необходимо сериализовать коллекцию пользователей из базы данных в файл CSV и отправить ее.
 
+app.get("/download", async (req, res) => {
+  pool.query(
+    `SELECT username, firstname, lastname, age FROM users`,
+    (err, rows, fields) => {
+      var options = {
+        delimiter: ";",
+        wrap: false,
+        headers: "relative"
+      };
+      let data = csvjson.toCSV(rows, options);
+      var createfile = fs.createWriteStream(path.join("./out/newfile.csv"));
+      createfile.write(data);
+    }
+  );
+  return res.send(200);
+});
 
 app.listen(3000, () => {
-  console.log(`Server is run`)
+  console.log(`Server is run`);
 });
