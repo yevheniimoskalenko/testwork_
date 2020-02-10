@@ -16,7 +16,10 @@ const app = express();
 app.use(fileupload());
 //Загрузите файл CSV. Файл должен быть проанализирован и сохранен в базе данных
 app.post("/upload", async (req, res) => {
-  const { name, mimetype } = req.files.file;
+  const {
+    name,
+    mimetype
+  } = req.files.file;
   if (mimetype != "text/csv") return res.sendStatus(415); // если не файл в формате cvs то значит ошибка
 
   req.files.file.mv(`./uploads/${name}`, err => {
@@ -35,7 +38,7 @@ app.post("/upload", async (req, res) => {
       for (let key in data_) {
         pool.query(
           `INSERT INTO users (username, firstname, lastname, age) VALUES ("${data_[key].Username}","${data_[key].Firstname}","${data_[key].Lastname}","${data_[key].Age}" )`,
-          function(err, rows, fields) {}
+          function (err, rows, fields) {}
         );
       }
       return res.sendStatus(200);
@@ -67,7 +70,7 @@ app.get("/download", async (req, res) => {
       createfile.write(data);
     }
   );
-  return res.sendFile("./out/newfile.csv");
+  return res.status(200).send('./out/newfile.csv')
 });
 
 app.listen(3000, () => {
