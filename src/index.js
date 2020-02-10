@@ -1,7 +1,6 @@
 const express = require("express");
 const fileupload = require("express-fileupload");
 const mysql = require("mysql2");
-const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 const fs = require("fs");
 const csvjson = require("csvjson");
 const path = require("path");
@@ -68,7 +67,7 @@ app.get("/download", async (req, res) => {
       createfile.write(data);
     }
   );
-  return res.send(200);
+  return res.sendFile("./out/newfile.csv");
 });
 
 app.listen(3000, () => {
